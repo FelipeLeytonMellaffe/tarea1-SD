@@ -1,0 +1,94 @@
+version: '3.8'
+
+networks:
+  redisn:
+    driver: bridge
+
+services:
+  redis1:
+    image: bitnami/redis:latest
+    restart: always
+    container_name: redis-server-1
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data_1:/bitnami/redis/data
+      - ./redis.conf:/bitnami/redis/mounted-redis.conf
+    networks: 
+      - redisn
+    command: ["redis-server", "/bitnami/redis/mounted-redis.conf"] 
+
+  redisinsight:
+    image: redislabs/redisinsight:latest
+    restart: always
+    container_name: redis-insight
+    volumes: 
+      - redis-insight:/data
+    ports:
+      - "5540:5540" 
+    networks: 
+      - redisn
+    depends_on:
+      - redis1
+
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: domains_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - ./db_service/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./data/dominios_reducido.csv:/data/dominios_reducido.csv
+    ports:
+      - "5432:5432"
+    networks:
+      - redisn
+
+  db_populator:
+    image: python:3.9-slim
+    volumes:
+      - ./db_service/populate_db.py:/app/populate_db.py
+      - ./data/dominios_reducido.csv:/data/dominios_reducido.csv
+    environment:
+      - POSTGRES_DB=domains_db
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+    depends_on:
+      - postgres
+    entrypoint: ["python", "/app/populate_db.py"]
+
+  dns_service:
+    build: ./dns_service
+    container_name: dns_service
+    networks:
+      - redisn
+    depends_on:
+      - redis1
+
+  api_service:
+    build: ./api_service
+    container_name: api_service
+    ports:
+      - "8000:8000"
+    networks:
+      - redisn
+    depends_on:
+      - dns_service
+      - redis1
+
+  traffic_generator:
+    build: ./traffic_generator
+    container_name: traffic_generator
+    networks:
+      - redisn
+    depends_on:
+      - api_service
+
+volumes:
+  redis_data_1:
+    driver: local
+  redis-insight:
+  postgres_data:

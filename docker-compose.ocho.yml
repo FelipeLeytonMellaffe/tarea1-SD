@@ -1,0 +1,234 @@
+version: '3.8'
+
+networks:
+  redisn:
+    driver: bridge
+
+services:
+  redis1:
+    image: bitnami/redis:latest
+    restart: always
+    container_name: redis-server-1
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data_1:/bitnami/redis/data
+      - ./redis.conf:/bitnami/redis/mounted-redis.conf
+    networks: 
+      - redisn
+    command: ["redis-server", "/bitnami/redis/mounted-redis.conf"]
+
+  redis2:
+    image: bitnami/redis:latest
+    restart: always
+    container_name: redis-server-2
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data_2:/bitnami/redis/data
+      - ./redis.conf:/bitnami/redis/mounted-redis.conf
+    networks: 
+      - redisn
+    command: ["redis-server", "/bitnami/redis/mounted-redis.conf"]
+
+  redis3:
+    image: bitnami/redis:latest
+    restart: always
+    container_name: redis-server-3
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - "6381:6379"
+    volumes:
+      - redis_data_3:/bitnami/redis/data
+      - ./redis.conf:/bitnami/redis/mounted-redis.conf
+    networks: 
+      - redisn
+    command: ["redis-server", "/bitnami/redis/mounted-redis.conf"]
+
+  redis4:
+    image: bitnami/redis:latest
+    restart: always
+    container_name: redis-server-4
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - "6382:6379"
+    volumes:
+      - redis_data_4:/bitnami/redis/data
+      - ./redis.conf:/bitnami/redis/mounted-redis.conf
+    networks: 
+      - redisn
+    command: ["redis-server", "/bitnami/redis/mounted-redis.conf"]
+  
+  redis5:
+    image: bitnami/redis:latest
+    restart: always
+    container_name: redis-server-5
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - "6383:6379"
+    volumes:
+      - redis_data_5:/bitnami/redis/data
+      - ./redis.conf:/bitnami/redis/mounted-redis.conf
+    networks: 
+      - redisn
+    command: ["redis-server", "/bitnami/redis/mounted-redis.conf"]
+  
+  redis6:
+    image: bitnami/redis:latest
+    restart: always
+    container_name: redis-server-6
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - "6384:6379"
+    volumes:
+      - redis_data_6:/bitnami/redis/data
+      - ./redis.conf:/bitnami/redis/mounted-redis.conf
+    networks: 
+      - redisn
+    command: ["redis-server", "/bitnami/redis/mounted-redis.conf"]
+  
+  redis7:
+    image: bitnami/redis:latest
+    restart: always
+    container_name: redis-server-7
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - "6385:6379"
+    volumes:
+      - redis_data_7:/bitnami/redis/data
+      - ./redis.conf:/bitnami/redis/mounted-redis.conf
+    networks: 
+      - redisn
+    command: ["redis-server", "/bitnami/redis/mounted-redis.conf"]
+  
+  redis8:
+    image: bitnami/redis:latest
+    restart: always
+    container_name: redis-server-8
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - "6386:6379"
+    volumes:
+      - redis_data_8:/bitnami/redis/data
+      - ./redis.conf:/bitnami/redis/mounted-redis.conf
+    networks: 
+      - redisn
+    command: ["redis-server", "/bitnami/redis/mounted-redis.conf"]
+
+  redisinsight:
+    image: redislabs/redisinsight:latest
+    restart: always
+    container_name: redis-insight
+    volumes: 
+      - redis-insight:/data
+    ports:
+      - "5540:5540" 
+    networks: 
+      - redisn
+    depends_on:
+      - redis1
+      - redis2
+      - redis3
+      - redis4
+      - redis5
+      - redis6
+      - redis7
+      - redis8
+
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: domains_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - ./db_service/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./data/dominios_reducido.csv:/data/dominios_reducido.csv
+    ports:
+      - "5432:5432"
+    networks:
+      - redisn
+
+  db_populator:
+    image: python:3.9-slim
+    volumes:
+      - ./db_service/populate_db.py:/app/populate_db.py
+      - ./data/dominios_reducido.csv:/data/dominios_reducido.csv
+    environment:
+      - POSTGRES_DB=domains_db
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+    depends_on:
+      - postgres
+    entrypoint: ["python", "/app/populate_db.py"]
+
+  dns_service:
+    build: ./dns_service
+    container_name: dns_service
+    networks:
+      - redisn
+    depends_on:
+      - redis1
+      - redis2
+      - redis3
+      - redis4
+      - redis5
+      - redis6
+      - redis7
+      - redis8
+
+  api_service:
+    build: ./api_service
+    container_name: api_service
+    ports:
+      - "8000:8000"
+    networks:
+      - redisn
+    depends_on:
+      - dns_service
+      - redis1
+      - redis2
+      - redis3
+      - redis4
+      - redis5
+      - redis6
+      - redis7
+      - redis8
+
+  traffic_generator:
+    build: ./traffic_generator
+    container_name: traffic_generator
+    networks:
+      - redisn
+    depends_on:
+      - api_service
+
+volumes:
+  redis_data_1:
+    driver: local
+  redis_data_2:
+    driver: local
+  redis_data_3:
+    driver: local
+  redis_data_4:
+    driver: local
+  redis_data_5:
+    driver: local
+  redis_data_6:
+    driver: local
+  redis_data_7:
+    driver: local
+  redis_data_8:
+    driver: local
+  redis-insight:
+  postgres_data:
