@@ -90,7 +90,7 @@ def get_redis_client_by_range(domain: str):
 @app.get('/resolve/{domain}')
 def resolve_domain(domain: str):
     redis_client = get_redis_client(domain)  # Obtener la instancia de Redis por hash (comentar si uso rango)
-    redis_client = get_redis_client_by_range(domain) # Obtener la instancia de Redis por rango (comentar si uso hash)
+    #redis_client = get_redis_client_by_range(domain) # Obtener la instancia de Redis por rango (comentar si uso hash)
     
     ip_address = redis_client.get(domain)
     if ip_address:
