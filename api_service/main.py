@@ -48,11 +48,11 @@ def get_redis_client_by_range(domain: str):
     # Obtener la primera letra del dominio y convertirla en mayúscula
     first_char = domain[0].upper()
     
-    # Definir las particiones por rango de letras (2 particiones)
+    """# Definir las particiones por rango de letras (2 particiones)
     if 'A' <= first_char <= 'M':
         index = 0  # Partición 1: A-M
     else:
-        index = 1  # Partición 2: N-Z
+        index = 1  # Partición 2: N-Z"""
     
     """# Definir las particiones por rango de letras (4 particiones)
     if 'A' <= first_char <= 'F':
@@ -64,7 +64,7 @@ def get_redis_client_by_range(domain: str):
     else:
         index = 3  # Partición 4: S-Z"""
     
-    """# Definir las particiones por rango de letras (8 particiones)
+    # Definir las particiones por rango de letras (8 particiones)
     if 'A' <= first_char <= 'C':
         index = 0  # Partición 1: A-C
     elif 'D' <= first_char <= 'F':
@@ -80,7 +80,7 @@ def get_redis_client_by_range(domain: str):
     elif 'S' <= first_char <= 'U':
         index = 6  # Partición 7: S-U
     else:
-        index = 7  # Partición 8: V-Z"""
+        index = 7  # Partición 8: V-Z
 
     # Incrementar el contador de la partición correspondiente
     partition_request_count[index] += 1
