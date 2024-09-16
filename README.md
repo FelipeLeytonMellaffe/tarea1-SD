@@ -1,6 +1,7 @@
 # tarea1-SD
 
 video: https://youtu.be/lyD7a6ZXfv0
+video para tener compasión: https://www.youtube.com/watch?v=b3rNUhDqciM
 
 #### primero comentar en api_service/app.py todo lo que no sea de la cantidad de particiones que vas a usar
 
