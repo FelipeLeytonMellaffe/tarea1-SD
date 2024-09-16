@@ -11,3 +11,8 @@ video para tener compasión: https://www.youtube.com/watch?v=b3rNUhDqciM
 docker-compose -f docker-compose.ocho.yml up -d
 ```
 
+#### Instalar dependencias
+
+```bash
+pip install psycopg2-binary
+```
